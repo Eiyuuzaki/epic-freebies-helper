@@ -5,7 +5,14 @@ jobs:
   list:
     runs-on: ubuntu-latest
     steps:
-      - name: List available Gemini models
+      - name: Test candidate models with tiny request
         run: |
-          curl -s "https://generativelanguage.googleapis.com/v1beta/models?key=${{ secrets.GEMINI_API_KEY }}&pageSize=100" \
-            | grep -oE '"name": "models/[^"]+"' | sed 's/"name": "models\///;s/"//' | sort
+          for M in gemini-3.1-flash-lite gemini-2.5-flash gemini-flash-latest gemini-3-flash-preview gemini-3.8-flash-lite-tts; do
+            echo "=== $M ==="
+            curl -s -X POST \
+              "https://generativelanguage.googleapis.com/v1beta/models/$M:generateContent?key=${{ secrets.GEMINI_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d '{"contents":[{"parts":[{"text":"reply with exactly: ok"}]}]}' \
+              | head -c 220
+            echo ""
+          done
